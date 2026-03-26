@@ -1,0 +1,71 @@
+\xef\xbb\xbf============================================
+  Shift App - Setup Guide
+============================================
+
+[STEP 1] Install Python
+============================================
+
+1. Open this URL in your browser:
+   https://www.python.org/downloads/
+
+2. Click "Download Python 3.x.x"
+
+3. Run the downloaded file
+
+4. *** IMPORTANT ***
+   Check "Add Python to PATH"
+
+5. Click "Install Now"
+
+============================================
+[STEP 2] Start the App
+============================================
+
+1. Double-click "setup_and_start.bat"
+   -> Libraries will be installed automatically
+   -> Browser will open automatically
+
+2. If browser does not open:
+   Open http://localhost:5050
+
+============================================
+[STEP 3] Create Shift Schedule
+============================================
+
+1. Click "Shift Calendar" button
+2. Click "Shift Generate" button
+3. Select year and month (e.g. 2026/06)
+4. Click "Generate"
+   -> Shift schedule will be created
+
+============================================
+[TROUBLESHOOTING]
+============================================
+
+* "Python is not installed"
+  -> Complete Step 1 first
+  -> Make sure "Add Python to PATH" is checked
+
+* Browser does not open
+  -> Manually open http://localhost:5050
+
+* Other errors
+  -> Take a screenshot and send via CrowdWorks
+
+============================================
+[FILE LIST]
+============================================
+
+setup_and_start.bat ... Setup & Start (double-click this)
+app.py ................ Main application
+solver.py ............. Shift generation engine
+models.py ............. Data models
+config.py ............. Configuration
+export.py ............. Excel export
+shift.db .............. Database
+requirements.txt ...... Required libraries
+run/ .................. Startup scripts
+static/ ............... CSS & JavaScript
+templates/ ............ HTML templates
+
+============================================
