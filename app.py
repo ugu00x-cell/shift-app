@@ -13,6 +13,8 @@ import calendar
 from datetime import date, datetime
 from io import BytesIO
 
+from functools import wraps
+
 from flask import (
     Flask,
     render_template,
@@ -22,6 +24,8 @@ from flask import (
     jsonify,
     flash,
     send_file,
+    session,
+    abort,
 )
 
 from flask_wtf.csrf import CSRFProtect
@@ -92,7 +96,8 @@ def normalize_allowed_pattern_codes(raw_codes, staff_group):
 # ---------------------------------------------------------------------------
 def _run_migrations(app):
     """SQLiteは db.create_all() で既存テーブルにカラム追加できないため ALTER TABLE で対応"""
-    db_path = app.config["SQLALCHEMY_DATABASE_URI"].replace("sqlite:///", "")
+    from config import resolve_database_path
+    db_path = resolve_database_path()
     if not os.path.exists(db_path):
         return  # DB未作成ならスキップ（create_all で作られる）
 
@@ -376,6 +381,22 @@ def create_app():
 
     # CSRF保護
     csrf = CSRFProtect(app)
+
+    @app.before_request
+    def _set_session_auth():
+        """ページにアクセスしたブラウザにセッションマーカーを付与する"""
+        if "authenticated" not in session:
+            session["authenticated"] = True
+            session.permanent = True
+
+    def require_session(f):
+        """セッション認証がないリクエストを拒否するデコレータ"""
+        @wraps(f)
+        def decorated(*args, **kwargs):
+            if not session.get("authenticated"):
+                abort(403)
+            return f(*args, **kwargs)
+        return decorated
 
     with app.app_context():
         # 既存テーブルのマイグレーション（カラム追加）
@@ -1157,6 +1178,7 @@ def create_app():
     # API ルート — エクスポート
     # -----------------------------------------------------------------
     @app.route("/api/export/<generation_id>/excel", methods=["GET"])
+    @require_session
     def api_export_excel(generation_id):
         """Excel ファイルとしてダウンロード"""
         shifts = GeneratedShift.query.filter_by(generation_id=generation_id).all()
@@ -1221,6 +1243,7 @@ def create_app():
         )
 
     @app.route("/api/export/<generation_id>/csv", methods=["GET"])
+    @require_session
     def api_export_csv(generation_id):
         """CSV ファイルとしてダウンロード"""
         shifts = GeneratedShift.query.filter_by(generation_id=generation_id).all()
@@ -1296,6 +1319,8 @@ if __name__ == "__main__":
     app = create_app()
     debug = os.environ.get("FLASK_DEBUG", "0") == "1"
     port = int(os.environ.get("PORT", 5050))
+    # LAN公開が必要な場合は環境変数 SHIFT_APP_HOST=0.0.0.0 を設定
+    host = os.environ.get("SHIFT_APP_HOST", "127.0.0.1")
     if not debug:
         threading.Timer(1.5, webbrowser.open, args=[f"http://localhost:{port}"]).start()
-    app.run(debug=debug, host="0.0.0.0", port=port)
+    app.run(debug=debug, host=host, port=port)

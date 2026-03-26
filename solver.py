@@ -8,6 +8,7 @@ OR-Tools CP-SAT を使用した制約充足・最適化ソルバー
 import calendar
 import datetime
 import json
+import os
 import jpholiday
 from ortools.sat.python import cp_model
 
@@ -1803,7 +1804,7 @@ def _solve_care(
     # ==================================================================
     solver = cp_model.CpSolver()
     solver.parameters.max_time_in_seconds = 45
-    solver.parameters.num_workers = 1
+    solver.parameters.num_workers = min(4, os.cpu_count() or 1)
     solver.parameters.random_seed = 0
 
     status = solver.solve(model)
